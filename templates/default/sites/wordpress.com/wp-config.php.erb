@@ -1,0 +1,32 @@
+<?php
+define( 'DB_NAME',     '<%= @db_name %>' );
+define( 'DB_USER',     '<%= @db_user %>' );
+define( 'DB_PASSWORD', '<%= @db_password %>' );
+define( 'DB_HOST',     '<%= @db_host %>' );
+define( 'DB_CHARSET',  'utf8' );
+
+$table_prefix = 'wp_';
+
+define( 'AUTH_KEY',         'Some secret token goes right here' );
+define( 'SECURE_AUTH_KEY',  'Some secret token goes right here' );
+define( 'LOGGED_IN_KEY',    'Some secret token goes right here' );
+define( 'NONCE_KEY',        'Some secret token goes right here' );
+define( 'AUTH_SALT',        'Some secret token goes right here' );
+define( 'SECURE_AUTH_SALT', 'Some secret token goes right here' );
+define( 'LOGGED_IN_SALT',   'Some secret token goes right here' );
+define( 'NONCE_SALT',       'Some secret token goes right here' );
+
+define( 'WPLANG', '' );
+
+define('WP_HOME','http://'. $_SERVER['SERVER_NAME']);
+define('WP_SITEURL','http://'. $_SERVER['SERVER_NAME']);
+
+define('WP_CACHE_KEY_SALT', '<%= @appname %>');
+define('WP_CACHE', true);
+
+$redis_server = array( 'host' => '127.0.0.1', 'port' => 6379);
+
+if ( !defined('ABSPATH') )
+    define('ABSPATH', dirname(__FILE__) . '/');
+
+require_once(ABSPATH . 'wp-settings.php');

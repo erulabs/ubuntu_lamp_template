@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS <%= @db_name %>;
+
+GRANT ALL ON `<%= @db_name %>`.* to '<%= @db_user %>'@'<%= @local_mysql %>' IDENTIFIED BY '<%= @db_pass %>';
+
+GRANT ALL ON `<%= @db_name %>`.* to '<%= @db_user %>'@'localhost' IDENTIFIED BY '<%= @db_pass %>';
+
+<% node.default['address_map']['app_node_ips'].each do |ip| %>
+  GRANT ALL ON `<%= @db_name %>`.* to '<%= @db_user %>'@'<%= ip %>' IDENTIFIED BY '<%= @db_pass %>';
+<% end %>

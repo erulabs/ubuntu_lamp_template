@@ -1,0 +1,118 @@
+<% if node.chef_environment == 'prd' %>
+<VirtualHost *:8080>
+    ServerName <%= @appname %>
+    RedirectMatch permanent ^/(.*) http://www.<%= @appname %>/$1
+</VirtualHost>
+<% end %>
+
+<VirtualHost *:8080>
+  ServerName www.<%= @appname %>
+
+  ServerAlias stage.<%= @appname %>
+
+  ServerAdmin webmaster@localhost
+  DocumentRoot /var/www/<%= @appname %>/current/
+
+  ErrorLog ${APACHE_LOG_DIR}/<%= @appname %>-error.log
+  CustomLog ${APACHE_LOG_DIR}/<%= @appname %>-access.log combined
+
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
+  DeflateCompressionLevel 9
+
+  <Directory /var/www/<%= @appname %>/current/wp-content/uploads/>
+      RewriteEngine On
+      RewriteBase /wp-content/uploads/
+      RewriteRule (.*) http://cdn.<%= @appname %>/wp-content/uploads/$1 [R=301,L]
+  </Directory>
+
+  <Directory /var/www/<%= @appname %>/current/>
+    <% if node.chef_environment != 'prd' %>
+    AuthType Basic
+    AuthName "Unauthorized"
+    AuthBasicProvider file
+    AuthUserFile /etc/apache2/.htpasswd
+    Require valid-user
+    <% end %>
+    # BEGIN W3TC Browser Cache
+    <IfModule mod_deflate.c>
+        <IfModule mod_headers.c>
+            Header append Vary User-Agent env=!dont-vary
+        </IfModule>
+        <IfModule mod_filter.c>
+            AddOutputFilterByType DEFLATE text/css text/x-component application/x-javascript application/javascript text/javascript text/x-js text/html text/richtext image/svg+xml text/plain text/xsd text/xsl text/xml image/x-icon application/json
+        <IfModule mod_mime.c>
+            # DEFLATE by extension
+            AddOutputFilter DEFLATE js css htm html xml
+        </IfModule>
+        </IfModule>
+    </IfModule>
+    # END W3TC Browser Cache
+
+    <IfModule mod_rewrite.c>
+      Options FollowSymLinks
+      RewriteEngine On
+      RewriteBase /
+      RewriteRule ^index\.php$ - [L]
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteRule . /index.php [L]
+    </IfModule>
+
+    Options -Indexes +FollowSymLinks -MultiViews
+
+    # Set the default handler.
+    DirectoryIndex index.php index.html index.htm
+
+    AllowOverride None
+
+    ## Requires mod_expires to be enabled.
+    <IfModule mod_expires.c>
+      # Enable expirations.
+      ExpiresActive On
+
+      # Cache all files for 2 weeks after access (A).
+      ExpiresDefault A1209600
+
+      <FilesMatch \.php$>
+        # Do not allow PHP scripts to be cached unless they explicitly send cache
+        # headers themselves. Otherwise all scripts would have to overwrite the
+        # headers set by mod_expires if they want another caching behavior. This may
+        # fail if an error occurs early in the bootstrap process, and it may cause
+        # problems if a non-Drupal PHP file is installed in a subdirectory.
+        ExpiresActive Off
+      </FilesMatch>
+    </IfModule>
+    AddType font/ttf .ttf
+    AddType font/eot .eot
+    AddType font/otf .otf
+    AddType font/woff .woff
+  </Directory>
+  #### Expires By Type
+  ExpiresActive On
+  ExpiresDefault "access plus 60 seconds"
+  ExpiresByType image/x-icon "access plus 29030400 seconds"
+  ExpiresByType image/jpeg "access plus 29030400 seconds"
+  ExpiresByType image/jpg "access plus 29030400 seconds"
+  ExpiresByType image/png "access plus 29030400 seconds"
+  ExpiresByType image/gif "access plus 29030400 seconds"
+  ExpiresByType application/x-shockwave-flash "access plus 29030400 seconds"
+  ExpiresByType text/css "access plus 2592000 seconds"
+  ExpiresByType text/javascript "access plus 2592000 seconds"
+  ExpiresByType application/x-javascript "access plus 2592000 seconds"
+  ExpiresByType text/html "access plus 600 seconds"
+  ExpiresByType application/xhtml+xml "access plus 600 seconds"
+
+  #### Cache-Control
+  <FilesMatch "\\.(ico|jpeg|jpg|png|gif|swf)$">
+      Header set Cache-Control "max-age=29030400, public"
+  </FilesMatch>
+  <FilesMatch "\\.(css|js)$">
+      Header set Cache-Control "max-age=2592000, public"
+  </FilesMatch>
+  <FilesMatch "\\.(x?html?|php|xml)$">
+      Header set Cache-Control "max-age=600, private, must-revalidate"
+  </FilesMatch>
+  ProxyPassMatch ^/(.*\.php(/.*)?)$ unix:/var/run/php5-fpm.sock|fcgi://localhost/var/www/<%= @appname %>/current/ connectiontimeout=60 timeout=60
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

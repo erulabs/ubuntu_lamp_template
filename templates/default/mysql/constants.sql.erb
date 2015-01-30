@@ -1,0 +1,5 @@
+DELETE FROM mysql.user;
+CREATE USER 'root'@'%' IDENTIFIED BY "<%= @pass %>";
+GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+FLUSH PRIVILEGES;
+DROP DATABASE IF EXISTS test;

@@ -1,0 +1,25 @@
+global
+    daemon
+    maxconn 256
+
+defaults
+    mode tcp
+    timeout connect 5000ms
+    timeout client 5000ms
+    timeout server 5000ms
+
+frontend redis
+    bind 0.0.0.0:<%= @redis_port %>
+    default_backend redis
+
+backend redis
+    mode tcp
+    balance first
+    option tcp-check
+
+    tcp-check send info\ replication\r\n
+    tcp-check expect string role:master
+
+<% @app_nodes.each do |addr| %>
+    server redis:<%= addr %>:<%= @redis_port+1 %> <%= addr %>:<%= @redis_port+1 %> maxconn 1024 check inter 1s
+<% end %>
