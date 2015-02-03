@@ -28,6 +28,13 @@ application app_name do
   deploy_key app_secrets['deploy_key']
   revision branch
   before_symlink do
+    # Use a Redis page cache - checkout index.php.erb template
+    template "#{release_path}/index.php" do
+      mode '0775'
+      owner webserver_user
+      group webserver_user
+      source "sites/#{app_name}/index.php.erb"
+    end
     template "#{release_path}/wp-config.php" do
       mode '0775'
       owner webserver_user
